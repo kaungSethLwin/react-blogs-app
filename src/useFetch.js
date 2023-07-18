@@ -1,0 +1,47 @@
+import { useState,useEffect } from "react";
+
+
+const useFetch = (url) =>{
+
+    const [data,setData] = useState(null);
+    const [isPending,setisPending] =useState (true);
+    const [showError,setShowError] = useState(null);
+   
+  
+    
+  useEffect(() => {
+
+    const abortCont = new AbortController();
+
+
+    setTimeout(() => {
+      fetch(url,{signal:abortCont.signal})
+      .then(res =>{
+        if(!res.ok){
+          throw Error ("Sorry! We can't get the data from that source");
+        }
+        return res.json();
+      })
+      .then(data =>{
+        setData(data);
+        setisPending(false);
+        setShowError(null);
+      })
+      .catch(err => {
+        if(err.name === 'AbortError') {
+          console.log('fetch aborted');
+        } else {
+          setisPending(false);
+          setShowError(err.message);
+        }
+      })
+    }, 1000);
+
+      return () => abortCont.abort();
+  },[url]);
+
+
+   return {data,isPending,showError}
+}
+
+export default useFetch;
